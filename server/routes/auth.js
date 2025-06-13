@@ -19,6 +19,21 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ mensaje: 'El email ya está registrado' });
     }
 
+    // Validación del email institucional
+    const dominioValido = '@terciariourquiza.edu.ar';
+
+    if (!email.endsWith(dominioValido)) {
+        return res.status(400).json({ mensaje: 'Email inválido. Debe ser institucional.' });
+    }
+
+    if (rol === 'alumno' && !/^\d+@terciariourquiza\.edu\.ar$/.test(email)) {
+        return res.status(400).json({ mensaje: 'Email de alumno inválido. Debe ser DNI@terciariourquiza.edu.ar' });
+    }
+
+    if (rol === 'profesor' && !/^[a-z]+\.[a-z]+@terciariourquiza\.edu\.ar$/.test(email)) {
+        return res.status(400).json({ mensaje: 'Email de profesor inválido. Debe ser apellido.nombre@terciariourquiza.edu.ar' });
+    }
+
     // Crear y guardar el nuevo usuario
     const nuevoUsuario = new User({ nombre, email, password, rol });
     await nuevoUsuario.save();
