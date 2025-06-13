@@ -3,52 +3,55 @@ const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
+
 // POST /api/register
+
+
 router.post('/register', async (req, res) => {
   try {
-    const { nombre, email, password, rol } = req.body;
+    const { nombre, email, password, rol, carrera } = req.body;
 
-    // Validar campos básicos
-    if (!nombre || !email || !password) {
+    if (!nombre || !email || !password || !rol) {
       return res.status(400).json({ mensaje: 'Faltan campos obligatorios' });
     }
 
-    // Verificar si ya existe el email
-    const usuarioExistente = await User.findOne({ email });
-    if (usuarioExistente) {
-      return res.status(409).json({ mensaje: 'El email ya está registrado' });
-    }
-
-    // Validación del email institucional
     const dominioValido = '@terciariourquiza.edu.ar';
-
     if (!email.endsWith(dominioValido)) {
-        return res.status(400).json({ mensaje: 'Email inválido. Debe ser institucional.' });
+      return res.status(400).json({ mensaje: 'Email no es institucional' });
     }
 
     if (rol === 'alumno' && !/^\d+@terciariourquiza\.edu\.ar$/.test(email)) {
-        return res.status(400).json({ mensaje: 'Email de alumno inválido. Debe ser DNI@terciariourquiza.edu.ar' });
+      return res.status(400).json({ mensaje: 'Email de alumno inválido. Debe ser DNI@...' });
     }
 
     if (rol === 'profesor' && !/^[a-z]+\.[a-z]+@terciariourquiza\.edu\.ar$/.test(email)) {
-        return res.status(400).json({ mensaje: 'Email de profesor inválido. Debe ser apellido.nombre@terciariourquiza.edu.ar' });
+      return res.status(400).json({ mensaje: 'Email de profesor inválido. Debe ser apellido.nombre@...' });
     }
 
-    // Crear y guardar el nuevo usuario
-    const nuevoUsuario = new User({ nombre, email, password, rol });
+    if (rol === 'alumno' && !carrera) {
+      return res.status(400).json({ mensaje: 'Debe seleccionar una carrera' });
+    }
+
+    const usuarioExistente = await User.findOne({ email });
+    if (usuarioExistente) {
+      return res.status(409).json({ mensaje: 'Este email ya está registrado' });
+    }
+
+    const nuevoUsuario = new User({ nombre, email, password, rol, carrera });
     await nuevoUsuario.save();
 
-    // Generar token
     const token = jwt.sign({ id: nuevoUsuario._id, rol: nuevoUsuario.rol }, process.env.JWT_SECRET, {
       expiresIn: '1d',
     });
 
-    res.status(201).json({ mensaje: 'Usuario creado', token });
+    res.status(201).json({ mensaje: 'Usuario registrado con éxito', token });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error en el servidor' });
   }
 });
+
 
 // POST /api/login
 
