@@ -50,4 +50,58 @@ router.post('/register', async (req, res) => {
   }
 });
 
-export default router;
+// POST /api/login
+
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Validar que haya datos
+
+        if (!email || !password) {
+            return res.status(400).json({ mensaje: 'Email y contraseña requeridos'});
+        }
+
+        // Buscar al usuario por email
+        
+        const usuario = await User.findOne({ email });
+
+        if (!usuario) {
+            return res.status(401).json({ mensaje: 'Credenciales inválidas'});
+        }
+
+        // Validar contraseña
+
+        const contraseñaValida = await usuario.compararPassword(password);
+        if (!contraseñaValida){
+            return res.status(401).json({ mensaje: 'Credenciales inválidas'});
+        }
+
+        // Generar JWT 
+
+        const token = jwt.sign(
+            { id: usuario._id, rol: usuario.rol },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d'}
+        );
+
+        // Enviar token al frontend 
+
+        res.status(200).json({
+            mensaje: 'Login exitoso',
+            token, 
+            usuario: {
+                id: usuario._id,
+                nombre: usuario.nombre,
+                email: usuario.email,
+                rol: usuario.rol
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error del servidor'});
+    }
+});
+
+module.exports = router;
