@@ -6,7 +6,14 @@ const userSchema = new Schema({
     nombre: { type: String, required: true},
     email : { type: String, required: true, unique: true},
     password: { type: String, required: true },
-    rol: { type: String, enum: ['alumno', 'profesor', 'admin'], default: 'alumno'}
+    rol: { type: String, enum: ['alumno', 'profesor', 'admin'], default: 'alumno'},
+    carrera: {
+        type: String,
+        enum: ['TÉCNICO SUPERIOR EN DESARROLLO DE SOFTWARE', 'TÉCNICO SUPERIOR EN ANÁLISIS FUNCIONAL DE SISTEMAS INFORMÁTICOS', 'TÉCNICO SUPERIOR EN INFRAESTRUCTURA DE TECNOLOGÍA DE LA INFORMACIÓN'],
+        required: function() {
+            return this.rol === 'alumno';
+        }
+    },
 });
 
 // Hashear la contraseña antes de guardar
