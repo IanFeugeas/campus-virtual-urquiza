@@ -14,6 +14,7 @@ const userSchema = new Schema({
             return this.rol === 'alumno';
         }
     },
+    estado: { type: String, enum: ['pendiente', 'aprobado', 'rechazado'], default: 'pendiente'}
 });
 
 // Hashear la contraseña antes de guardar
