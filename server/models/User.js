@@ -23,8 +23,12 @@ const userSchema = new Schema({
     },
     carrera: {
         type: String,
-        enum: ['TÉCNICO SUPERIOR EN DESARROLLO DE SOFTWARE', 'TÉCNICO SUPERIOR EN ANÁLISIS FUNCIONAL DE SISTEMAS INFORMÁTICOS', 'TÉCNICO SUPERIOR EN INFRAESTRUCTURA DE TECNOLOGÍA DE LA INFORMACIÓN'],
-        required: function() {
+        enum: [
+            'Desarrollo de Software',
+            'Analista Funcional',
+            'Infraestructura de Software'
+        ],
+        required: function () {
             return this.rol === 'alumno';
         }
     },
