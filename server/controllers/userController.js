@@ -7,7 +7,7 @@ const obtenerPerfil = async (req, res) => {
         if (!usuario) {
             return res.status(404).json({ mensaje: 'Usuario no encontrado'});
         }
-        res.jason(usuario);
+        res.json(usuario);
     } catch (error) {
         console.error(error);
         res.status(500).json({ mensaje: 'Error al obtener el perfil' });
