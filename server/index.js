@@ -11,9 +11,11 @@ app.use(express.json());
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
   res.send('API funcionando 👋');
