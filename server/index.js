@@ -15,7 +15,7 @@ const adminRoutes = require('./routes/adminRoutes');
 
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api', adminRoutes);
 
 // Importar rutas
 
