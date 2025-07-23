@@ -32,6 +32,10 @@ const login = async (req, res) => {
       return res.status(401).json({ mensaje: 'Credenciales inválidas' });
     }
 
+    if (usuario.estado !== 'aprobado') {
+      return res.status(403).json({ mensaje: 'Tu cuenta aún no fue aprobada o fue rechazada.' });
+    }
+    
     const passwordValido = await usuario.compararPassword(password);
     if (!passwordValido) {
       return res.status(401).json({ mensaje: 'Credenciales inválidas' });

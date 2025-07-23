@@ -35,8 +35,24 @@ const cambiarEstadoUsuario = async (req, res) => {
     }
 };
 
+const eliminarUsuario = async (req, res) => {
+    try {
+        const usuario = await User.findByIdAndDelete(req.params.id);
+
+        if (!usuario) {
+            return res.status(404).json({ mensaje: 'Usuario no encontrado'});
+        }
+
+        res.status(200).json({ mensaje: 'Usuario eliminado correctamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error al eliminar el usuario' });
+    }
+};
+
 module.exports = {
   obtenerUsuarios,
-  cambiarEstadoUsuario
+  cambiarEstadoUsuario,
+  eliminarUsuario
 };
 
