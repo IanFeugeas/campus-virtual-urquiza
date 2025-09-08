@@ -1,16 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const { obtenerPerfil, obtenerUsuarioPorId, actualizarUsuario } = require('../controllers/userController');
-const verificarToken = require('../middlewares/authMiddleware');
-const verificarRol = require('../middlewares/verificarRol');
+import { Router } from 'express';
+const router = Router();
+import { obtenerPerfil, obtenerUsuarioPorId, actualizarUsuario } from '../controllers/userController.js';
+import verificarToken from '../middlewares/authMiddleware.js';
+import verificarRol from '../middlewares/verificarRol.js';
 
 // Perfil del usuario autenticado
 router.get('/perfil', verificarToken, obtenerPerfil);
 
-// Obtener usuario por ID
+// Obtener usuario por ID (cada uno el suyo, admin cualquiera)
 router.get('/:id', verificarToken, obtenerUsuarioPorId);
 
-// Actualizar un usuario (propio o admin)
-router.patch('/:id', verificarToken, actualizarUsuario);
+// Actualizar usuario (propio o admin)
+router.patch('/:id',verificarRol('alumno','admin'), verificarToken, actualizarUsuario);
 
-module.exports = router;
+export default router;

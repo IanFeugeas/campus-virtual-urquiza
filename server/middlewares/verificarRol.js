@@ -8,4 +8,4 @@ const verificarRol = (...rolesPermitidos) => {
     };
 };
 
-module.exports = verificarRol;
+export default verificarRol;
