@@ -1,17 +1,16 @@
-const User = require('../models/User');
+import User from '../models/User.js';
 
 const obtenerPerfil = async (req, res) => {
-
-    try {
-        const usuario = await User.findById(req.usuario.id).select('-password');
-        if (!usuario) {
-            return res.status(404).json({ mensaje: 'Usuario no encontrado'});
-        }
-        res.json(usuario);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ mensaje: 'Error al obtener el perfil' });
+  try {
+    const usuario = await User.findById(req.usuario.id).select('-password');
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }
+    res.json(usuario);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: 'Error al obtener el perfil' });
+  }
 };
 
 const obtenerUsuarioPorId = async (req, res) => {
@@ -27,7 +26,6 @@ const obtenerUsuarioPorId = async (req, res) => {
     }
 
     res.status(200).json(usuario);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al obtener el perfil' });
@@ -39,34 +37,36 @@ const actualizarUsuario = async (req, res) => {
     const { id } = req.params;
 
     if (req.usuario.id !== id && req.usuario.rol !== 'admin') {
-      return res.status(403).json({ mensaje: 'No tenes permiso para modificar los datos de este perfil'});
+      return res.status(403).json({ mensaje: 'No tenés permiso para modificar este perfil' });
     }
 
-    const { nombre, carrera } = req.body;
+    let camposActualizables = {};
+
+    if (req.usuario.rol === 'admin') {
+      camposActualizables = req.body;
+    } else {
+      const { nombre, carrera } = req.body;
+      camposActualizables = { nombre, carrera };
+    }
 
     const usuario = await User.findByIdAndUpdate(
       id,
-      { nombre, carrera },
-      { new: true, runValidators: true } 
+      camposActualizables,
+      { new: true, runValidators: true }
     ).select('-password');
 
     if (!usuario) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado'});
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }
 
     res.status(200).json({
       mensaje: 'Usuario actualizado correctamente',
       usuario,
     });
-
-  }catch (error) {
+  } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al actualizar el usuario' });
   }
 };
 
-module.exports = {
-    obtenerPerfil,
-    obtenerUsuarioPorId,
-    actualizarUsuario
-    };
+export { obtenerPerfil, obtenerUsuarioPorId, actualizarUsuario };
