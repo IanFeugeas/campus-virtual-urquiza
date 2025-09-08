@@ -11,6 +11,7 @@ const verificarToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Payload del token:", decoded);
     req.usuario = decoded;
     next();
   } catch (error) {

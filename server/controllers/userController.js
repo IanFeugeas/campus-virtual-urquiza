@@ -15,7 +15,7 @@ const obtenerPerfil = async (req, res) => {
 
 const obtenerUsuarioPorId = async (req, res) => {
   try {
-    if (req.usuario.id !== req.params.id && req.usuario.rol !== 'admin') {
+    if (req.usuario.id.toString() !== id.toString() && req.usuario.rol !== 'admin') {
       return res.status(403).json({ mensaje: 'No tenés permiso para acceder a este perfil' });
     }
 
@@ -36,8 +36,8 @@ const actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (req.usuario.id !== id && req.usuario.rol !== 'admin') {
-      return res.status(403).json({ mensaje: 'No tenés permiso para modificar este perfil' });
+    if (req.usuario.id.toString() !== id.toString() && req.usuario.rol !== 'admin') {
+    return res.status(403).json({ mensaje: 'No tenés permiso para modificar este perfil' });
     }
 
     let camposActualizables = {};
