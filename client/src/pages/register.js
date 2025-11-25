@@ -5,6 +5,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [carrera, setCarrera] = useState("");
+  const [rol, setRol] = useState("");
   const [mensaje, setMensaje] = useState("");
 
   const handleRegister = async (e) => {
@@ -14,7 +15,7 @@ export default function RegisterPage() {
       const res = await fetch("http://localhost:5000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, email, password, carrera }),
+        body: JSON.stringify({ nombre, email, password, carrera, rol }),
       });
 
       const data = await res.json();
@@ -29,6 +30,7 @@ export default function RegisterPage() {
       setEmail("");
       setPassword("");
       setCarrera("");
+      setRol("");
     } catch (error) {
       console.error(error);
       setMensaje("Error en el servidor");
@@ -65,6 +67,12 @@ export default function RegisterPage() {
           <option value="Desarrollo de Software">Desarrollo de Software</option>
           <option value="Analista Funcional">Analista Funcional</option>
           <option value="Infraestructura de Software">Infraestructura de Software</option>
+        </select>
+        <select value={rol} onChange={(e) => setRol(e.target.value)} required>
+          <option value="">Que rol ocupas en la institucion? </option>
+          <option value="alumno">Alumno</option>
+          <option value="docente">Docente</option>
+          <option value="admin">Administrativo/Directivo</option>
         </select>
         <button type="submit">Registrarse</button>
       </form>
