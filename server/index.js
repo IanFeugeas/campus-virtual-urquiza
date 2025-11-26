@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import postRoutes from './routes/postRoutes.js';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', adminRoutes);
+app.use('/api/posts', postRoutes);
 
 app.get('/', (req, res) => {
   res.send('API funcionando 👋');
