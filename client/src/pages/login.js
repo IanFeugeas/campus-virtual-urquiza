@@ -1,62 +1,74 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
+import { apiFetch } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 
-export default function LoginPage() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mensaje, setMensaje] = useState("");
+  const [error, setError] = useState(null);
+  const { saveAuth } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setError(null);
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMensaje(data.mensaje || "Error al iniciar sesión");
-        return;
-      }
-
-      localStorage.setItem("token", data.token);
-      setMensaje("✅ Login exitoso");
-
-      if (data.usuario.rol === "admin") {
-        window.location.href = "/admin";
-      } else {
-        window.location.href = "/perfil";
-      }
-    } catch (error) {
-      console.error(error);
-      setMensaje("Error en el servidor");
+      const data = await apiFetch("/auth/login", { method: "POST", body: { email, password } });
+      // Asumimos respuesta: { token, user }
+      saveAuth(data.token, data.user);
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err.message || "Error en login");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "50px" }}>
-      <h1>Iniciar Sesión</h1>
-      <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "10px", width: "300px" }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Ingresar</button>
-      </form>
-      {mensaje && <p>{mensaje}</p>}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow">
+        <h2 className="text-2xl font-semibold mb-4">Iniciar sesión</h2>
+        {error && <div className="mb-4 text-red-600">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              required
+              className="mt-1 w-full border rounded px-3 py-2"
+              placeholder="tu@terciariourquiza.edu.ar"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              required
+              className="mt-1 w-full border rounded px-3 py-2"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+          >
+            {loading ? "Ingresando..." : "Ingresar"}
+          </button>
+        </form>
+
+        <div className="mt-4 text-sm text-gray-600">
+          ¿No tenés cuenta? <a className="text-blue-600" href="/register">Registrate</a>
+        </div>
+      </div>
     </div>
   );
 }
