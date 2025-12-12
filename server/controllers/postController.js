@@ -1,84 +1,73 @@
 import Post from '../models/Post.js';
+import User from '../models/User.js';
 
-export const crearPost = async (req, res) => {
+export const createPost = async (req, res) => {
+    const { titulo, cuerpo, tipo } = req.body;
+
+    const userId = req.usuario.id; 
+    const userRole = req.usuario.rol;
+
+    if (tipo === 'anuncio' && !['docente', 'admin'].includes(userRole)) {
+        return res.status(403).json({ 
+            mensaje: 'Solo docentes o administradores pueden crear publicaciones de tipo "anuncio".' 
+        });
+    }
+
     try {
-        const { titulo, contenido, etiquetas } = req.body;
+        const autor = await User.findById(userId);
+        if (!autor) {
+            return res.status(404).json({ mensaje: 'Autor no encontrado.' });
+        }
+        
+        const postCarrera = autor.rol === 'alumno' ? autor.carrera : 'General';
 
-        const nuevoPost = await Post.create({
+        const newPost = new Post({
             titulo,
-            contenido,
-            etiquetas,
-            autor: req.user.id,
+            cuerpo,
+            tipo,
+            autor: userId,
+            carrera: postCarrera,
         });
 
-        res.status(201).json(nuevoPost);
-    }catch(error) {
-        res.status(500).json({ message: 'Error al crear el post', error});
-    }
-};
+        await newPost.save();
 
-export const obtenerPosts = async (req, res) => {
-    try {
-        const posts = await Post.find()
-            .populate('autor', 'nombre email rol')
-            .sort({ createdAt: -1 });
-        
-        res.json(posts);
+        res.status(201).json({ 
+            mensaje: 'Publicación creada exitosamente.', 
+            post: { 
+                ...newPost._doc,
+                autor: { id: autor._id, nombre: autor.nombre, rol: autor.rol }
+            }
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener los posts', error});    
+        console.error("Error al crear el post:", error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al crear el post.' });
     }
 };
 
-export const obtenerPostPorId = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id)
-      .populate('autor', 'nombre email rol')
-      .populate('comentarios.autor', 'nombre email rol');
+export const getPosts = async (req, res) => {
 
-    if (!post) return res.status(404).json({ message: 'Post no encontrado' });
+    const userRole = req.usuario.rol;
+    const userCarrera = req.usuario.carrera;
+    
+    let query = {};
 
-    res.json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener el post', error });
-  }
-};
+    if (userRole === 'alumno') {
+        query = {
+            $or: [
+                { carrera: 'General' }, 
+                { carrera: userCarrera }
+            ]
+        };
+    }
 
-export const actualizarPost = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
+    try {
+        const posts = await Post.find(query)
+            .populate('autor', 'nombre rol carrera') 
+            .sort({ createdAt: -1 }); 
 
-    if (!post) return res.status(404).json({ message: 'Post no encontrado' });
-
-    if (post.autor.toString() !== req.user.id)
-      return res.status(403).json({ message: 'No autorizado' });
-
-    const { titulo, contenido, etiquetas } = req.body;
-
-    post.titulo = titulo || post.titulo;
-    post.contenido = contenido || post.contenido;
-    post.etiquetas = etiquetas || post.etiquetas;
-
-    await post.save();
-
-    res.json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar el post', error });
-  }
-};
-
-export const eliminarPost = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-
-    if (!post) return res.status(404).json({ message: 'Post no encontrado' });
-
-    if (post.autor.toString() !== req.user.id && req.user.rol !== 'admin')
-      return res.status(403).json({ message: 'No autorizado' });
-
-    await post.deleteOne();
-
-    res.json({ message: 'Post eliminado correctamente' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al eliminar el post', error });
-  }
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error("Error al obtener posts:", error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al obtener publicaciones.' });
+    }
 };

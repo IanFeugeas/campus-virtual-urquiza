@@ -1,20 +1,13 @@
 import express from 'express';
-import {
-  crearPost,
-  obtenerPosts,
-  obtenerPostPorId,
-  actualizarPost,
-  eliminarPost,
-} from '../controllers/postController.js';
-import authMiddleware from '../middleware/authMiddleware.js';
+import { createPost, getPosts, getPostById } from '../controllers/postController.js';
+import { auth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/', obtenerPosts);
-router.get('/:id', obtenerPostPorId);
+router.get('/', auth, getPosts);
 
-router.post('/', authMiddleware, crearPost);
-router.put('/:id', authMiddleware, actualizarPost);
-router.delete('/:id', authMiddleware, eliminarPost);
+router.post('/', auth, createPost);
+
+router.get('/:id', auth, getPostById); 
 
 export default router;
