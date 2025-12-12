@@ -10,6 +10,16 @@ const obtenerUsuarios = async (req, res) => {
   }
 };
 
+const obtenerUsuariosPendientes = async (req, res) => {
+    try {
+        const usuariosPendientes = await User.find({ estado: 'pendiente' }).select('-password'); 
+        res.status(200).json(usuariosPendientes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error al obtener usuarios pendientes' });
+    }
+};
+
 const cambiarEstadoUsuario = async (req, res) => {
     try {
         const { id } = req.params;
@@ -52,6 +62,7 @@ const eliminarUsuario = async (req, res) => {
 
 export {
   obtenerUsuarios,
+  obtenerUsuariosPendientes,
   cambiarEstadoUsuario,
   eliminarUsuario
 };

@@ -2,35 +2,30 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
 export const register = async (req, res) => {
-  try {
-    const { nombre, email, password, rol, carrera } = req.body;
+    try {
+        const { nombre, email, password, rol, carrera } = req.body;
 
-    // Verificar si ya existe
-    const usuarioExistente = await User.findOne({ email });
-    if (usuarioExistente) {
-      return res.status(409).json({ mensaje: 'Este email ya está registrado' });
+        const usuarioExistente = await User.findOne({ email });
+        if (usuarioExistente) {
+            return res.status(409).json({ mensaje: 'Este email ya está registrado' });
+        }
+
+        const nuevoUsuario = new User({ 
+            nombre, 
+            email, 
+            password, 
+            rol: rol || 'alumno',
+            carrera 
+        });
+        await nuevoUsuario.save();
+
+        res.status(202).json({ 
+            mensaje: 'Registro exitoso. Tu cuenta ha sido creada y está pendiente de aprobación por un administrador.',
+            usuario: { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email, estado: nuevoUsuario.estado }
+        });
+    } catch (error) {
+        // ... (Tu manejo de errores)
     }
-
-    // Crear y guardar usuario
-    const nuevoUsuario = new User({ nombre, email, password, rol, carrera });
-    await nuevoUsuario.save();
-
-    // Generar token
-    if (!process.env.JWT_SECRET) {
-      throw new Error("Falta la variable JWT_SECRET en el entorno");
-    }
-
-    const token = jwt.sign(
-      { id: nuevoUsuario._id, rol: nuevoUsuario.rol },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
-
-    res.status(201).json({ mensaje: 'Usuario creado', token });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: 'Error en el servidor' });
-  }
 };
 
 export const login = async (req, res) => {
