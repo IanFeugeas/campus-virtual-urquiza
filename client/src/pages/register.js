@@ -1,82 +1,121 @@
-import { useState } from "react";
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { apiClient } from '../services/apiClient';
+
+const CARRERAS = [
+    'Desarrollo de Software', 
+    'Analista Funcional', 
+    'Infraestructura de Software'
+];
 
 export default function RegisterPage() {
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [carrera, setCarrera] = useState("");
-  const [rol, setRol] = useState("");
-  const [mensaje, setMensaje] = useState("");
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rol, setRol] = useState('alumno');
+  const [carrera, setCarrera] = useState(CARRERAS[0]);
+  
+  const [statusMessage, setStatusMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setStatusMessage('Enviando solicitud de registro...');
+    
+    const body = { nombre, email, password, rol };
 
+    if (rol === 'alumno') {
+        body.carrera = carrera;
+    }
+    
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, email, password, carrera, rol }),
+      const data = await apiClient('auth/register', {
+          method: 'POST',
+          body: body
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMensaje(data.mensaje || "Error en el registro");
-        return;
-      }
-
-      setMensaje("✅ Registro exitoso. Espera aprobación del admin.");
-      setNombre("");
-      setEmail("");
-      setPassword("");
-      setCarrera("");
-      setRol("");
+      
+      setStatusMessage(`✅ ${data.mensaje} Ahora puedes intentar iniciar sesión. Estarás habilitado cuando un administrador apruebe tu cuenta.`);
+      
+      setEmail('');
+      setPassword('');
+      
     } catch (error) {
-      console.error(error);
-      setMensaje("Error en el servidor");
+      setStatusMessage(error.message || 'Error de conexión. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "50px" }}>
-      <h1>Registro</h1>
-      <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "10px", width: "300px" }}>
-        <input
-          type="text"
-          placeholder="Nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email institucional"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <select value={carrera} onChange={(e) => setCarrera(e.target.value)} required>
-          <option value="">Seleccioná tu carrera</option>
-          <option value="Desarrollo de Software">Desarrollo de Software</option>
-          <option value="Analista Funcional">Analista Funcional</option>
-          <option value="Infraestructura de Software">Infraestructura de Software</option>
-        </select>
-        <select value={rol} onChange={(e) => setRol(e.target.value)} required>
-          <option value="">Que rol ocupas en la institucion? </option>
-          <option value="alumno">Alumno</option>
-          <option value="docente">Docente</option>
-          <option value="admin">Administrativo/Directivo</option>
-        </select>
-        <button type="submit">Registrarse</button>
-      </form>
-      {mensaje && <p>{mensaje}</p>}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-lg w-full p-8 bg-white rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">Registro de Usuario</h1>
+        
+        {statusMessage && (
+          <p className={`mb-4 p-3 rounded text-sm ${
+            statusMessage.includes('✅') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {statusMessage}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">Nombre Completo</label>
+            <input type="text" id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required 
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" disabled={loading}/>
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Correo Institucional (@terciariourquiza.edu.ar)</label>
+            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required 
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" disabled={loading}/>
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Contraseña</label>
+            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required 
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" disabled={loading}/>
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="rol" className="block text-sm font-medium text-gray-700">Rol</label>
+            <select id="rol" value={rol} onChange={(e) => setRol(e.target.value)} required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" disabled={loading}>
+              <option value="alumno">Alumno</option>
+              <option value="docente">Docente</option>
+            </select>
+          </div>
+
+          {rol === 'alumno' && (
+            <div className="mb-6">
+              <label htmlFor="carrera" className="block text-sm font-medium text-gray-700">Carrera</label>
+              <select id="carrera" value={carrera} onChange={(e) => setCarrera(e.target.value)} required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" disabled={loading}>
+                {CARRERAS.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          )}
+          
+          <button
+            type="submit"
+            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? 'Registrando...' : 'Solicitar Registro'}
+          </button>
+        </form>
+        
+        <p className="mt-6 text-center text-sm text-gray-600">
+          ¿Ya tienes cuenta?{' '}
+          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            Iniciar sesión
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
